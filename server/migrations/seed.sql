@@ -1,0 +1,7 @@
+-- Use `node seed.js` to insert the seeded admin user with a runtime-generated bcrypt hash.
+-- Account seeded by the script:
+--   full_name: Super Admin
+--   email: admin@adminexam.org
+--   username: AdminExam999
+--   password: AdminExam@123
+--   role: admin
