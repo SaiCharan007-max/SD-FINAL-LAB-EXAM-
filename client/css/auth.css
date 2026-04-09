@@ -1,0 +1,82 @@
+.auth-card {
+  width: 100%;
+  max-width: 470px;
+  padding: 44px;
+  border-radius: 20px;
+  border: 1px solid #d9e3ef;
+  background:
+    radial-gradient(circle at -10% -20%, rgba(68, 146, 225, 0.17), transparent 40%),
+    linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+  box-shadow: 0 28px 70px rgba(14, 39, 65, 0.16);
+}
+
+.auth-title {
+  margin: 0 0 26px;
+  text-align: center;
+  font-size: 1.72rem;
+  line-height: 1.2;
+  color: #0c3558;
+  letter-spacing: 0.2px;
+}
+
+.auth-link {
+  color: #215f9f;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+}
+
+.inline-error {
+  margin: 8px 0 14px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid #f2bac6;
+  background: #fff0f3;
+  color: #a82640;
+  font-size: 0.87rem;
+}
+
+.pwd-checklist {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+  font-size: 0.83rem;
+  line-height: 1.45;
+}
+
+.pwd-checklist li {
+  color: #6e7683;
+}
+
+.pwd-checklist li.met {
+  color: #11815a;
+}
+
+.pwd-checklist li::before {
+  content: "x ";
+}
+
+.pwd-checklist li.met::before {
+  content: "✓ ";
+}
+
+.password-wrap {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #cfddeb;
+  background: #f3f8fe;
+  color: #2a5f95;
+  cursor: pointer;
+}

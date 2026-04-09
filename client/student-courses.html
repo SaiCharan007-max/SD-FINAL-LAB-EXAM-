@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Courses - Online Examination Portal</title>
+  <link rel="stylesheet" href="css/reset.css" />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="css/exam.css" />
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="sidebar" class="sidebar hidden"></div>
+  <header id="top-header" class="top-header hidden"></header>
+  <main id="app" class="app-content"></main>
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div id="modal-box" class="modal-box"></div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/pages/login.js"></script>
+  <script src="js/pages/register.js"></script>
+  <script src="js/pages/admin-dashboard.js"></script>
+  <script src="js/pages/admin-courses.js"></script>
+  <script src="js/pages/admin-faculty.js"></script>
+  <script src="js/pages/faculty-dashboard.js"></script>
+  <script src="js/pages/faculty-questions.js"></script>
+  <script src="js/pages/faculty-exams.js"></script>
+  <script src="js/pages/faculty-leaderboard.js"></script>
+  <script src="js/pages/student-dashboard.js"></script>
+  <script src="js/pages/student-courses.js"></script>
+  <script src="js/pages/student-my-courses.js"></script>
+  <script src="js/pages/student-my-exams.js"></script>
+  <script src="js/pages/student-my-results.js"></script>
+  <script src="js/pages/exam-attempt.js"></script>
+  <script src="js/pages/exam-result.js"></script>
+  <script src="js/pages/not-found.js"></script>
+  <script>
+    if (requireAuth("student")) { renderStudentCourses(); }
+  </script>
+</body>
+</html>

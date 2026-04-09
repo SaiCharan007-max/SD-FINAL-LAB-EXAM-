@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Online Examination Portal</title>
+</head>
+<body>
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    if (isLoggedIn() && !isTokenExpired(getToken())) {
+      window.location.href = routeToPath(getHomeDashboard());
+    } else {
+      window.location.href = "login.html";
+    }
+  </script>
+</body>
+</html>
