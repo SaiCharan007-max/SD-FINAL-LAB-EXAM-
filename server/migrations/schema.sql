@@ -1,3 +1,20 @@
+BEGIN;
+
+DROP TABLE IF EXISTS exam_rankings CASCADE;
+DROP TABLE IF EXISTS attempt_questions CASCADE;
+DROP TABLE IF EXISTS exam_attempts CASCADE;
+DROP TABLE IF EXISTS exams CASCADE;
+DROP TABLE IF EXISTS questions CASCADE;
+DROP TABLE IF EXISTS enrollments CASCADE;
+DROP TABLE IF EXISTS faculty_courses CASCADE;
+DROP TABLE IF EXISTS courses CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+
+DROP TYPE IF EXISTS exam_status CASCADE;
+DROP TYPE IF EXISTS difficulty_level CASCADE;
+DROP TYPE IF EXISTS answer_option CASCADE;
+DROP TYPE IF EXISTS user_role CASCADE;
+
 CREATE TYPE user_role AS ENUM ('admin', 'faculty', 'student');
 CREATE TYPE answer_option AS ENUM ('A', 'B', 'C', 'D');
 CREATE TYPE difficulty_level AS ENUM ('Easy', 'Medium', 'Hard');
@@ -11,7 +28,16 @@ CREATE TABLE users (
   password_hash TEXT NOT NULL,
   role user_role NOT NULL,
   employee_id VARCHAR(50) UNIQUE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  current_year VARCHAR(20),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CHECK (
+    current_year IS NULL
+    OR current_year IN ('1st Year', '2nd Year', '3rd Year', '4th Year')
+  ),
+  CHECK (
+    role <> 'student'
+    OR current_year IS NOT NULL
+  )
 );
 
 CREATE TABLE courses (
@@ -19,9 +45,11 @@ CREATE TABLE courses (
   course_name VARCHAR(150) NOT NULL,
   course_code VARCHAR(20) UNIQUE NOT NULL,
   description TEXT,
+  student_year VARCHAR(20) NOT NULL,
   academic_year VARCHAR(20) NOT NULL,
   created_by INT REFERENCES users(id) ON DELETE SET NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CHECK (student_year IN ('1st Year', '2nd Year', '3rd Year', '4th Year'))
 );
 
 CREATE TABLE faculty_courses (
@@ -108,8 +136,10 @@ CREATE TABLE exam_rankings (
 );
 
 CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX idx_users_current_year ON users(current_year);
 CREATE INDEX idx_faculty_courses_faculty ON faculty_courses(faculty_id);
 CREATE INDEX idx_faculty_courses_course ON faculty_courses(course_id);
+CREATE INDEX idx_courses_student_year ON courses(student_year);
 CREATE INDEX idx_enrollments_student ON enrollments(student_id);
 CREATE INDEX idx_enrollments_course ON enrollments(course_id);
 CREATE INDEX idx_questions_course_year ON questions(course_id, academic_year);
@@ -117,3 +147,5 @@ CREATE INDEX idx_exams_course_year ON exams(course_id, academic_year);
 CREATE INDEX idx_exam_attempts_exam_student ON exam_attempts(exam_id, student_id);
 CREATE INDEX idx_attempt_questions_attempt ON attempt_questions(attempt_id);
 CREATE INDEX idx_exam_rankings_exam_rank ON exam_rankings(exam_id, rank);
+
+COMMIT;

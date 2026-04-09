@@ -20,26 +20,32 @@ async function renderAdminFaculty() {
   async function loadFaculty() {
     showSpinner("faculty-table-wrap");
     try {
-      const data = await apiGetAdminFaculty();
-      const rows = data.faculty || data || [];
+      const rows = await apiGetAdminFaculty();
       if (!rows.length) {
-        showEmptyState("faculty-table-wrap", "No faculty records found", "👩‍🏫");
+        showEmptyState("faculty-table-wrap", "No faculty records found");
         return;
       }
+
       document.getElementById("faculty-table-wrap").innerHTML = `
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Employee ID</th><th>Temp Password</th></tr></thead>
+            <thead><tr><th>#</th><th>Name</th><th>Email</th><th>Employee ID</th><th>Courses</th><th>Students</th><th>Exams</th></tr></thead>
             <tbody>
-              ${rows.map((f, i) => `
-                <tr>
-                  <td>${i + 1}</td>
-                  <td>${f.full_name}</td>
-                  <td>${f.email}</td>
-                  <td>${f.employee_id || "-"}</td>
-                  <td>${f.temp_password ? `<button class="btn btn-blue" onclick="showTempPassword('${f.temp_password}')">View</button>` : "-"}</td>
-                </tr>
-              `).join("")}
+              ${rows
+                .map(
+                  (faculty, index) => `
+                    <tr>
+                      <td>${index + 1}</td>
+                      <td>${faculty.full_name}</td>
+                      <td>${faculty.email}</td>
+                      <td>${faculty.employee_id || "-"}</td>
+                      <td>${faculty.total_courses ?? 0}</td>
+                      <td>${faculty.total_students_registered ?? 0}</td>
+                      <td>${faculty.total_exams_conducted ?? 0}</td>
+                    </tr>
+                  `
+                )
+                .join("")}
             </tbody>
           </table>
         </div>
@@ -49,31 +55,32 @@ async function renderAdminFaculty() {
     }
   }
 
-  window.showTempPassword = function (pwd) {
+  window.showTempPassword = function (password) {
     showModal(`
       <div class="temp-password-box">
         <h3>Temporary Password</h3>
-        <div class="temp-password-value">${pwd}</div>
+        <div class="temp-password-value">${password}</div>
         <div class="modal-actions">
-          <button class="btn btn-blue" onclick="copyToClipboard('${pwd}')">Copy</button>
+          <button class="btn btn-blue" onclick="copyToClipboard('${password}')">Copy</button>
           <button class="btn" onclick="hideModal()">Close</button>
         </div>
-        <div class="temp-password-warning">Share this securely. The user should change it after first login.</div>
       </div>
     `);
   };
 
-  document.getElementById("create-faculty-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
+  document.getElementById("create-faculty-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
     try {
       const data = await apiCreateFaculty(
         document.getElementById("full_name").value.trim(),
         document.getElementById("email").value.trim(),
         document.getElementById("employee_id").value.trim()
       );
+      event.target.reset();
       showToast("Faculty created", "success");
-      e.target.reset();
-      if (data.temp_password) window.showTempPassword(data.temp_password);
+      if (data.temp_password) {
+        window.showTempPassword(data.temp_password);
+      }
       await loadFaculty();
     } catch (err) {
       showToast(err.message, "error");

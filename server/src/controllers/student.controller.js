@@ -21,12 +21,30 @@ const getAggregateExamStatus = (examRows) => {
 
 const listCourses = async (req, res, next) => {
   try {
+    const studentResult = await query(
+      `SELECT current_year
+       FROM users
+       WHERE id = $1 AND role = 'student'`,
+      [req.user.id]
+    );
+
+    if (studentResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const studentCurrentYear = studentResult.rows[0].current_year;
+
+    if (!studentCurrentYear) {
+      return res.status(400).json({ error: 'Student current year is not set' });
+    }
+
     const result = await query(
       `SELECT
          c.id,
          c.course_name,
          c.course_code,
          c.description,
+         c.student_year,
          c.academic_year,
          COALESCE(
            ARRAY_AGG(DISTINCT u.full_name) FILTER (WHERE u.full_name IS NOT NULL),
@@ -40,9 +58,10 @@ const listCourses = async (req, res, next) => {
        FROM courses c
        LEFT JOIN faculty_courses fc ON fc.course_id = c.id
        LEFT JOIN users u ON u.id = fc.faculty_id
+       WHERE c.student_year = $2
        GROUP BY c.id
        ORDER BY c.course_name ASC`,
-      [req.user.id]
+      [req.user.id, studentCurrentYear]
     );
 
     return res.status(200).json(
@@ -51,6 +70,7 @@ const listCourses = async (req, res, next) => {
         course_name: row.course_name,
         course_code: row.course_code,
         description: row.description,
+        student_year: row.student_year,
         academic_year: row.academic_year,
         faculty_names: row.faculty_names || [],
         is_enrolled: row.is_enrolled
@@ -64,10 +84,36 @@ const listCourses = async (req, res, next) => {
 const enrollInCourse = async (req, res, next) => {
   try {
     const courseId = Number(req.body.course_id);
-    const course = await query('SELECT id FROM courses WHERE id = $1', [courseId]);
+    const studentResult = await query(
+      `SELECT current_year
+       FROM users
+       WHERE id = $1 AND role = 'student'`,
+      [req.user.id]
+    );
+
+    if (studentResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const studentCurrentYear = studentResult.rows[0].current_year;
+
+    if (!studentCurrentYear) {
+      return res.status(400).json({ error: 'Student current year is not set' });
+    }
+
+    const course = await query(
+      `SELECT id, student_year
+       FROM courses
+       WHERE id = $1`,
+      [courseId]
+    );
 
     if (course.rowCount === 0) {
       return res.status(404).json({ error: 'Course not found' });
+    }
+
+    if (course.rows[0].student_year !== studentCurrentYear) {
+      return res.status(403).json({ error: 'You can only enroll in courses for your current year' });
     }
 
     const enrollment = await query(
@@ -100,6 +146,8 @@ const getMyCourses = async (req, res, next) => {
          c.id,
          c.course_name,
          c.course_code,
+         c.student_year,
+         c.academic_year,
          COALESCE(
            ARRAY_AGG(DISTINCT u.full_name) FILTER (WHERE u.full_name IS NOT NULL),
            '{}'
@@ -141,6 +189,8 @@ const getMyCourses = async (req, res, next) => {
         id: row.id,
         course_name: row.course_name,
         course_code: row.course_code,
+        student_year: row.student_year,
+        academic_year: row.academic_year,
         faculty_names: row.faculty_names || [],
         exam_status: getAggregateExamStatus(examMap.get(row.id) || [])
       }))
@@ -154,6 +204,7 @@ const getMyExams = async (req, res, next) => {
   try {
     const result = await query(
       `SELECT
+         ea.id AS attempt_id,
          ex.id AS exam_id,
          ex.title,
          c.course_name,
@@ -174,6 +225,7 @@ const getMyExams = async (req, res, next) => {
 
     return res.status(200).json(
       result.rows.map((row) => ({
+        attempt_id: row.attempt_id,
         exam_id: row.exam_id,
         title: row.title,
         course_name: row.course_name,

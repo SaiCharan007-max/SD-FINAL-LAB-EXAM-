@@ -114,13 +114,13 @@ const listFaculty = async (req, res, next) => {
 
 const createCourse = async (req, res, next) => {
   try {
-    const { course_name, course_code, description, academic_year } = req.body;
+    const { course_name, course_code, description, student_year, academic_year } = req.body;
 
     const result = await query(
-      `INSERT INTO courses (course_name, course_code, description, academic_year, created_by)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO courses (course_name, course_code, description, student_year, academic_year, created_by)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
-      [course_name, course_code, description || null, academic_year, req.user.id]
+      [course_name, course_code, description || null, student_year, academic_year, req.user.id]
     );
 
     return res.status(201).json(result.rows[0]);
@@ -137,6 +137,7 @@ const listCourses = async (req, res, next) => {
          c.course_name,
          c.course_code,
          c.description,
+         c.student_year,
          c.academic_year,
          COALESCE(ec.enrolled_student_count, 0) AS enrolled_student_count,
          u.id AS faculty_id,
@@ -161,6 +162,7 @@ const listCourses = async (req, res, next) => {
           course_name: row.course_name,
           course_code: row.course_code,
           description: row.description,
+          student_year: row.student_year,
           academic_year: row.academic_year,
           assigned_faculty: [],
           enrolled_student_count: Number(row.enrolled_student_count)

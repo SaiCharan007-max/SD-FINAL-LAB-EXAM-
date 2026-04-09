@@ -7,7 +7,7 @@ const saltRounds = Number(process.env.BCRYPT_SALT_ROUNDS || 10);
 
 const registerStudent = async (req, res, next) => {
   try {
-    const { full_name, email, username, password } = req.body;
+    const { full_name, email, username, password, current_year } = req.body;
 
     const existingUser = await query(
       'SELECT email, username FROM users WHERE email = $1 OR username = $2',
@@ -26,10 +26,10 @@ const registerStudent = async (req, res, next) => {
 
     const passwordHash = await bcrypt.hash(password, saltRounds);
     const result = await query(
-      `INSERT INTO users (full_name, email, username, password_hash, role)
-       VALUES ($1, $2, $3, $4, 'student')
-       RETURNING id, username, role`,
-      [full_name, email, username, passwordHash]
+      `INSERT INTO users (full_name, email, username, password_hash, role, current_year)
+       VALUES ($1, $2, $3, $4, 'student', $5)
+       RETURNING id, username, role, current_year`,
+      [full_name, email, username, passwordHash, current_year]
     );
 
     return res.status(201).json({
@@ -43,9 +43,9 @@ const registerStudent = async (req, res, next) => {
 
 const loginUser = async (req, res, next) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, role } = req.body;
     const result = await query(
-      `SELECT id, username, email, full_name, role, password_hash
+      `SELECT id, username, email, full_name, role, password_hash, current_year
        FROM users
        WHERE username = $1`,
       [username]
@@ -60,6 +60,10 @@ const loginUser = async (req, res, next) => {
 
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (user.role !== role) {
+      return res.status(401).json({ error: 'Selected role does not match this account' });
     }
 
     const token = jwt.sign(
@@ -79,7 +83,8 @@ const loginUser = async (req, res, next) => {
         id: user.id,
         username: user.username,
         role: user.role,
-        full_name: user.full_name
+        full_name: user.full_name,
+        current_year: user.role === 'student' ? user.current_year || null : null
       }
     });
   } catch (error) {

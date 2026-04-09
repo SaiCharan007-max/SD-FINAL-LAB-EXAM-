@@ -35,6 +35,10 @@ router.post(
     body('course_name').trim().notEmpty().withMessage('course_name is required'),
     body('course_code').trim().notEmpty().withMessage('course_code is required'),
     body('description').optional({ nullable: true }).trim(),
+    body('student_year')
+      .trim()
+      .isIn(['1st Year', '2nd Year', '3rd Year', '4th Year'])
+      .withMessage('student_year must be 1st Year, 2nd Year, 3rd Year, or 4th Year'),
     body('academic_year').trim().notEmpty().withMessage('academic_year is required'),
     handleValidationErrors
   ],

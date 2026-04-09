@@ -1,4 +1,4 @@
-// Faculty question bank management: upload and view per course/year.
+// Faculty question bank management.
 async function renderFacultyQuestions() {
   const user = getUser();
   renderSidebar("faculty");
@@ -9,16 +9,8 @@ async function renderFacultyQuestions() {
     <div class="card">
       <form id="upload-form" class="form-row">
         <div class="form-group"><label>Course</label><select id="q_course" required></select></div>
-        <div class="form-group">
-          <label>Year (Current AY: ${getCurrentAcademicYear()})</label>
-          <select id="q_year" required>
-            <option value="1st Year">1st Year</option>
-            <option value="2nd Year">2nd Year</option>
-            <option value="3rd Year">3rd Year</option>
-            <option value="4th Year">4th Year</option>
-          </select>
-        </div>
-        <div class="form-group"><label>CSV File</label><input id="q_file" type="file" accept=".csv" required /></div>
+        <div class="form-group"><label>Academic Year</label><select id="q_year" required>${renderAcademicYearOptions(getCurrentAcademicYear())}</select></div>
+        <div class="form-group"><label>Excel File</label><input id="q_file" type="file" accept=".xlsx,.xls" required /></div>
         <div><button class="btn btn-primary" type="submit">Upload Questions</button></div>
       </form>
     </div>
@@ -26,11 +18,11 @@ async function renderFacultyQuestions() {
   `;
 
   let courses = [];
+
   try {
-    const data = await apiGetFacultyCourses();
-    courses = data.courses || data || [];
+    courses = await apiGetFacultyCourses();
     document.getElementById("q_course").innerHTML = courses
-      .map((c) => `<option value="${c.course_id || c.id}">${c.course_name || c.name}</option>`)
+      .map((course) => `<option value="${course.id}">${course.course_name}</option>`)
       .join("");
   } catch (err) {
     showToast(err.message, "error");
@@ -38,28 +30,34 @@ async function renderFacultyQuestions() {
 
   async function loadQuestions() {
     const courseId = document.getElementById("q_course").value;
-    const year = document.getElementById("q_year").value.trim();
-    if (!courseId || !year) return;
+    const academicYear = document.getElementById("q_year").value.trim();
+    if (!courseId || !academicYear) return;
+
     showSpinner("questions-list");
     try {
-      const data = await apiGetQuestions(courseId, year);
-      const questions = data.questions || data || [];
+      const questions = await apiGetQuestions(courseId, academicYear);
       if (!questions.length) {
-        showEmptyState("questions-list", "No questions found for selected filters", "❓");
+        showEmptyState("questions-list", "No questions found for selected filters");
         return;
       }
+
       document.getElementById("questions-list").innerHTML = `
         <div class="table-wrap">
           <table class="data-table">
-            <thead><tr><th>#</th><th>Question</th><th>Difficulty</th></tr></thead>
+            <thead><tr><th>#</th><th>Question</th><th>Difficulty</th><th>Correct</th></tr></thead>
             <tbody>
-              ${questions.map((q, i) => `
-                <tr>
-                  <td>${i + 1}</td>
-                  <td>${q.question_text || q.question || "-"}</td>
-                  <td><span class="badge badge-${(q.difficulty || "low").toLowerCase()}">${q.difficulty || "LOW"}</span></td>
-                </tr>
-              `).join("")}
+              ${questions
+                .map(
+                  (question, index) => `
+                    <tr>
+                      <td>${index + 1}</td>
+                      <td>${question.question_text}</td>
+                      <td>${question.difficulty}</td>
+                      <td>${question.correct_answer}</td>
+                    </tr>
+                  `
+                )
+                .join("")}
             </tbody>
           </table>
         </div>
@@ -72,14 +70,26 @@ async function renderFacultyQuestions() {
   document.getElementById("q_course").addEventListener("change", loadQuestions);
   document.getElementById("q_year").addEventListener("change", loadQuestions);
 
-  document.getElementById("upload-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const fd = new FormData();
-    fd.append("course_id", document.getElementById("q_course").value);
-    fd.append("academic_year", document.getElementById("q_year").value.trim());
-    fd.append("file", document.getElementById("q_file").files[0]);
-    await apiUploadQuestions(fd);
-    showToast("Questions uploaded", "success");
-    loadQuestions();
+  document.getElementById("upload-form").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData();
+    formData.append("course_id", document.getElementById("q_course").value);
+    formData.append("academic_year", document.getElementById("q_year").value.trim());
+    formData.append("file", document.getElementById("q_file").files[0]);
+
+    try {
+      await apiUploadQuestions(formData);
+      showToast("Questions uploaded", "success");
+      event.target.reset();
+      document.getElementById("q_year").value = getCurrentAcademicYear();
+      if (courses.length) {
+        document.getElementById("q_course").value = String(courses[0].id);
+      }
+      await loadQuestions();
+    } catch (err) {
+      showToast(err.message, "error");
+    }
   });
+
+  await loadQuestions();
 }

@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "a5ed0d61-c4cd-4c78-9c10-7f5e1868fa4d",
+    "_postman_id": "4e2a56b4-6434-4f79-91c3-f2bc1b9f1f0a",
     "name": "Online Examination Management Portal API",
-    "description": "End-to-end collection for Admin, Faculty, Student, and Exam Attempt workflows.",
+    "description": "Full backend verification collection. Run `node seed.js`, `node seed.testdata.js`, and start the server before executing the collection.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -19,51 +19,39 @@
       "value": "AdminExam@123"
     },
     {
-      "key": "studentFullName",
-      "value": "Student One"
+      "key": "seededFacultyUsername",
+      "value": "EMP2002"
     },
     {
-      "key": "studentEmail",
-      "value": "student1@example.com"
+      "key": "seededFacultyPassword",
+      "value": "Temp2002"
     },
     {
-      "key": "studentUsername",
-      "value": "student001"
+      "key": "seededCourseCode",
+      "value": "CS202"
     },
     {
-      "key": "studentPassword",
-      "value": "Student@123"
+      "key": "seededStudentYear",
+      "value": "2nd Year"
     },
     {
-      "key": "facultyName",
-      "value": "Faculty One"
-    },
-    {
-      "key": "facultyEmail",
-      "value": "faculty1@example.com"
-    },
-    {
-      "key": "facultyEmployeeId",
-      "value": "EMP1001"
-    },
-    {
-      "key": "courseName",
-      "value": "Data Structures"
-    },
-    {
-      "key": "courseCode",
-      "value": "CS201"
-    },
-    {
-      "key": "academicYear",
+      "key": "seededAcademicYear",
       "value": "2025-26"
+    },
+    {
+      "key": "seededExamTitle",
+      "value": "Algorithms Live Test"
+    },
+    {
+      "key": "questionsExcelPath",
+      "value": "C:/Users/Chenna Sai Charan/OneDrive/Desktop/SD LAB EXAM/server/postman-assets/questions.xlsx"
     },
     {
       "key": "adminToken",
       "value": ""
     },
     {
-      "key": "facultyToken",
+      "key": "seededFacultyToken",
       "value": ""
     },
     {
@@ -71,19 +59,83 @@
       "value": ""
     },
     {
-      "key": "facultyTempPassword",
+      "key": "dynamicStudentName",
       "value": ""
     },
     {
-      "key": "facultyId",
+      "key": "dynamicStudentEmail",
       "value": ""
     },
     {
-      "key": "courseId",
+      "key": "dynamicStudentUsername",
       "value": ""
     },
     {
-      "key": "examId",
+      "key": "dynamicStudentCurrentYear",
+      "value": "2nd Year"
+    },
+    {
+      "key": "dynamicStudentPassword",
+      "value": "Student@123"
+    },
+    {
+      "key": "dynamicFacultyName",
+      "value": ""
+    },
+    {
+      "key": "dynamicFacultyEmail",
+      "value": ""
+    },
+    {
+      "key": "dynamicFacultyEmployeeId",
+      "value": ""
+    },
+    {
+      "key": "dynamicFacultyTempPassword",
+      "value": ""
+    },
+    {
+      "key": "dynamicFacultyId",
+      "value": ""
+    },
+    {
+      "key": "dynamicFacultyToken",
+      "value": ""
+    },
+    {
+      "key": "dynamicCourseName",
+      "value": ""
+    },
+    {
+      "key": "dynamicCourseCode",
+      "value": ""
+    },
+    {
+      "key": "dynamicCourseStudentYear",
+      "value": "2nd Year"
+    },
+    {
+      "key": "dynamicCourseId",
+      "value": ""
+    },
+    {
+      "key": "seededCourseId",
+      "value": ""
+    },
+    {
+      "key": "futureExamTitle",
+      "value": ""
+    },
+    {
+      "key": "futureExamStartDateTime",
+      "value": ""
+    },
+    {
+      "key": "futureExamId",
+      "value": ""
+    },
+    {
+      "key": "ongoingExamId",
       "value": ""
     },
     {
@@ -93,14 +145,6 @@
     {
       "key": "attemptQuestionId",
       "value": ""
-    },
-    {
-      "key": "questionsExcelPath",
-      "value": "C:/replace/with/questions.xlsx"
-    },
-    {
-      "key": "examStartDateTime",
-      "value": "2026-12-31T10:00:00.000Z"
     }
   ],
   "item": [
@@ -109,8 +153,21 @@
       "item": [
         {
           "name": "GET /",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Health check passes', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Health message is returned', function () { pm.expect(pm.response.json().message).to.eql('Online Examination Management Portal API'); });"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with `{ \"message\": \"Online Examination Management Portal API\" }`.",
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/",
@@ -127,12 +184,27 @@
       ]
     },
     {
-      "name": "Auth",
+      "name": "Authentication",
       "item": [
         {
-          "name": "POST /api/auth/register (Student)",
+          "name": "POST /api/auth/login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Admin login succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.user.role).to.eql('admin');",
+                  "pm.collectionVariables.set('adminToken', json.token);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
+            "description": "Expected: `200` with JWT token and admin user payload.",
             "header": [
               {
                 "key": "Content-Type",
@@ -141,7 +213,106 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"full_name\": \"{{studentFullName}}\",\n  \"email\": \"{{studentEmail}}\",\n  \"username\": \"{{studentUsername}}\",\n  \"password\": \"{{studentPassword}}\",\n  \"confirm_password\": \"{{studentPassword}}\"\n}"
+              "raw": "{\n  \"username\": {{adminUsername}},\n  \"password\": {{adminPassword}},\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/auth/login (Seeded Faculty)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Seeded faculty login succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.user.role).to.eql('faculty');",
+                  "pm.collectionVariables.set('seededFacultyToken', json.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Expected: `200` with JWT token and seeded faculty user payload.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": {{seededFacultyUsername}},\n  \"password\": {{seededFacultyPassword}},\n  \"role\": \"faculty\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/auth/register (Dynamic Student)",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const unique = String(Date.now()).slice(-6);",
+                  "pm.collectionVariables.set('dynamicStudentName', 'Student ' + unique);",
+                  "pm.collectionVariables.set('dynamicStudentEmail', 'student' + unique + '@example.com');",
+                  "pm.collectionVariables.set('dynamicStudentUsername', 'student' + unique);",
+                  "pm.collectionVariables.set('dynamicStudentCurrentYear', pm.collectionVariables.get('seededStudentYear'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Dynamic student registers', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.message).to.eql('Registration successful');",
+                  "pm.expect(json.user.role).to.eql('student');"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Expected: `201` with `{ message, user: { id, username, role } }` and role `student`.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": {{dynamicStudentName}},\n  \"email\": {{dynamicStudentEmail}},\n  \"username\": {{dynamicStudentUsername}},\n  \"current_year\": {{dynamicStudentCurrentYear}},\n  \"password\": {{dynamicStudentPassword}},\n  \"confirm_password\": {{dynamicStudentPassword}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/register",
@@ -158,26 +329,24 @@
           "response": []
         },
         {
-          "name": "POST /api/auth/login (Admin)",
+          "name": "POST /api/auth/login (Dynamic Student)",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Admin login success', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "var json = pm.response.json();",
-                  "if (json.token) {",
-                  "  pm.collectionVariables.set('adminToken', json.token);",
-                  "}"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Dynamic student login succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.user.role).to.eql('student');",
+                  "pm.collectionVariables.set('studentToken', json.token);"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
+            "description": "Expected: `200` with JWT token and dynamic student payload.",
             "header": [
               {
                 "key": "Content-Type",
@@ -186,97 +355,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"{{adminUsername}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "POST /api/auth/login (Faculty)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Faculty login success', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "var json = pm.response.json();",
-                  "if (json.token) {",
-                  "  pm.collectionVariables.set('facultyToken', json.token);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"{{facultyEmployeeId}}\",\n  \"password\": \"{{facultyTempPassword}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/login",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "auth",
-                "login"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "POST /api/auth/login (Student)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Student login success', function () {",
-                  "  pm.response.to.have.status(200);",
-                  "});",
-                  "var json = pm.response.json();",
-                  "if (json.token) {",
-                  "  pm.collectionVariables.set('studentToken', json.token);",
-                  "}"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"{{studentUsername}}\",\n  \"password\": \"{{studentPassword}}\"\n}"
+              "raw": "{\n  \"username\": {{dynamicStudentUsername}},\n  \"password\": {{dynamicStudentPassword}},\n  \"role\": \"student\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/auth/login",
@@ -299,8 +378,22 @@
       "item": [
         {
           "name": "GET /api/admin/summary",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Admin summary succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "['total_courses', 'total_faculty', 'total_students', 'total_exams'].forEach((key) => pm.expect(json).to.have.property(key));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with totals for courses, faculty, students, and exams.",
             "header": [
               {
                 "key": "Authorization",
@@ -322,31 +415,37 @@
           "response": []
         },
         {
-          "name": "POST /api/admin/faculty",
+          "name": "POST /api/admin/faculty (Dynamic Faculty)",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const unique = String(Date.now()).slice(-6);",
+                  "pm.collectionVariables.set('dynamicFacultyName', 'Faculty ' + unique);",
+                  "pm.collectionVariables.set('dynamicFacultyEmail', 'faculty' + unique + '@example.com');",
+                  "pm.collectionVariables.set('dynamicFacultyEmployeeId', 'EMP' + unique);"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Faculty created', function () {",
-                  "  pm.expect([201, 409]).to.include(pm.response.code);",
-                  "});",
-                  "var json = pm.response.json();",
-                  "if (pm.response.code === 201) {",
-                  "  if (json.faculty && json.faculty.id) {",
-                  "    pm.collectionVariables.set('facultyId', String(json.faculty.id));",
-                  "  }",
-                  "  if (json.temp_password) {",
-                  "    pm.collectionVariables.set('facultyTempPassword', json.temp_password);",
-                  "  }",
-                  "}"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Dynamic faculty is created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('dynamicFacultyId', String(json.faculty.id));",
+                  "pm.collectionVariables.set('dynamicFacultyTempPassword', json.temp_password);",
+                  "pm.expect(json.faculty.email).to.eql(pm.collectionVariables.get('dynamicFacultyEmail'));"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
+            "description": "Expected: `201` with faculty payload and one-time `temp_password`.",
             "header": [
               {
                 "key": "Authorization",
@@ -359,7 +458,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"full_name\": \"{{facultyName}}\",\n  \"email\": \"{{facultyEmail}}\",\n  \"employee_id\": \"{{facultyEmployeeId}}\"\n}"
+              "raw": "{\n  \"full_name\": {{dynamicFacultyName}},\n  \"email\": {{dynamicFacultyEmail}},\n  \"employee_id\": {{dynamicFacultyEmployeeId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/admin/faculty",
@@ -381,21 +480,20 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "var json = pm.response.json();",
-                  "if (Array.isArray(json)) {",
-                  "  var matched = json.find(function (f) { return f.email === pm.collectionVariables.get('facultyEmail'); });",
-                  "  if (matched && matched.id) {",
-                  "    pm.collectionVariables.set('facultyId', String(matched.id));",
-                  "  }",
-                  "}"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Faculty list succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const matched = json.find((faculty) => faculty.email === pm.collectionVariables.get('dynamicFacultyEmail'));",
+                  "pm.expect(matched).to.exist;",
+                  "pm.collectionVariables.set('dynamicFacultyId', String(matched.id));"
+                ]
               }
             }
           ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with faculty list including the newly created faculty.",
             "header": [
               {
                 "key": "Authorization",
@@ -417,26 +515,35 @@
           "response": []
         },
         {
-          "name": "POST /api/admin/courses",
+          "name": "POST /api/admin/courses (Dynamic Course)",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const unique = String(Date.now()).slice(-5);",
+                  "pm.collectionVariables.set('dynamicCourseName', 'Algorithms Lab ' + unique);",
+                  "pm.collectionVariables.set('dynamicCourseCode', 'LAB' + unique);",
+                  "pm.collectionVariables.set('dynamicCourseStudentYear', pm.collectionVariables.get('seededStudentYear'));"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "pm.test('Course create response', function () {",
-                  "  pm.expect([201, 409]).to.include(pm.response.code);",
-                  "});",
-                  "if (pm.response.code === 201) {",
-                  "  var json = pm.response.json();",
-                  "  if (json.id) pm.collectionVariables.set('courseId', String(json.id));",
-                  "}"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Dynamic course is created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('dynamicCourseId', String(json.id));"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
+            "description": "Expected: `201` with created course object.",
             "header": [
               {
                 "key": "Authorization",
@@ -449,7 +556,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"course_name\": \"{{courseName}}\",\n  \"course_code\": \"{{courseCode}}\",\n  \"description\": \"Core subject\",\n  \"academic_year\": \"{{academicYear}}\"\n}"
+              "raw": "{\n  \"course_name\": {{dynamicCourseName}},\n  \"course_code\": {{dynamicCourseCode}},\n  \"description\": \"Course created during Postman verification\",\n  \"student_year\": {{dynamicCourseStudentYear}},\n  \"academic_year\": {{seededAcademicYear}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/admin/courses",
@@ -471,21 +578,23 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "var json = pm.response.json();",
-                  "if (Array.isArray(json)) {",
-                  "  var matched = json.find(function (c) { return c.course_code === pm.collectionVariables.get('courseCode'); });",
-                  "  if (matched && matched.id) {",
-                  "    pm.collectionVariables.set('courseId', String(matched.id));",
-                  "  }",
-                  "}"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Course list succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const seededCourse = json.find((course) => course.course_code === pm.collectionVariables.get('seededCourseCode'));",
+                  "const dynamicCourse = json.find((course) => course.course_code === pm.collectionVariables.get('dynamicCourseCode'));",
+                  "pm.expect(seededCourse).to.exist;",
+                  "pm.expect(dynamicCourse).to.exist;",
+                  "pm.collectionVariables.set('seededCourseId', String(seededCourse.id));",
+                  "pm.collectionVariables.set('dynamicCourseId', String(dynamicCourse.id));"
+                ]
               }
             }
           ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with seeded and dynamic courses plus faculty assignments.",
             "header": [
               {
                 "key": "Authorization",
@@ -508,8 +617,21 @@
         },
         {
           "name": "POST /api/admin/courses/:courseId/assign-faculty",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Faculty assignment succeeds', function () { pm.response.to.have.status(200); });",
+                  "pm.expect(pm.response.json().message).to.eql('Faculty assigned successfully');"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
+            "description": "Expected: `200` with `{ message: \"Faculty assigned successfully\" }`.",
             "header": [
               {
                 "key": "Authorization",
@@ -522,10 +644,10 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"faculty_ids\": [{{facultyId}}]\n}"
+              "raw": "{\n  \"faculty_ids\": [\n    {{dynamicFacultyId}}\n  ]\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/admin/courses/{{courseId}}/assign-faculty",
+              "raw": "{{baseUrl}}/api/admin/courses/{{dynamicCourseId}}/assign-faculty",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -533,8 +655,50 @@
                 "api",
                 "admin",
                 "courses",
-                "{{courseId}}",
+                "{{dynamicCourseId}}",
                 "assign-faculty"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/auth/login (Dynamic Faculty)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Dynamic faculty login succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('dynamicFacultyToken', json.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "description": "Expected: `200` with JWT token for the newly created faculty.",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": {{dynamicFacultyEmployeeId}},\n  \"password\": {{dynamicFacultyTempPassword}},\n  \"role\": \"faculty\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
               ]
             }
           },
@@ -546,13 +710,27 @@
       "name": "Faculty",
       "item": [
         {
-          "name": "GET /api/faculty/courses",
+          "name": "GET /api/faculty/courses (Dynamic Faculty)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Dynamic faculty course list succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.some((course) => String(course.id) === pm.collectionVariables.get('dynamicCourseId'))).to.eql(true);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with the dynamic course assigned by admin.",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{facultyToken}}"
+                "value": "Bearer {{dynamicFacultyToken}}"
               }
             ],
             "url": {
@@ -571,12 +749,27 @@
         },
         {
           "name": "POST /api/faculty/questions/upload",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Question upload succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.message).to.include('Upload successful');",
+                  "pm.expect(json.count).to.be.above(0);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
+            "description": "Expected: `200` with `Upload successful - X questions added`. Uses the workbook generated by `node seed.testdata.js`.",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{facultyToken}}"
+                "value": "Bearer {{dynamicFacultyToken}}"
               }
             ],
             "body": {
@@ -584,12 +777,12 @@
               "formdata": [
                 {
                   "key": "course_id",
-                  "value": "{{courseId}}",
+                  "value": "{{dynamicCourseId}}",
                   "type": "text"
                 },
                 {
                   "key": "academic_year",
-                  "value": "{{academicYear}}",
+                  "value": "{{seededAcademicYear}}",
                   "type": "text"
                 },
                 {
@@ -616,16 +809,31 @@
         },
         {
           "name": "GET /api/faculty/questions/:courseId",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Dynamic course questions are returned', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(Array.isArray(json)).to.eql(true);",
+                  "pm.expect(json.length).to.be.above(0);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with uploaded questions for the dynamic course.",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{facultyToken}}"
+                "value": "Bearer {{dynamicFacultyToken}}"
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/faculty/questions/{{courseId}}?academic_year={{academicYear}}",
+              "raw": "{{baseUrl}}/api/faculty/questions/{{dynamicCourseId}}?academic_year={{seededAcademicYear}}",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -633,40 +841,46 @@
                 "api",
                 "faculty",
                 "questions",
-                "{{courseId}}"
-              ],
-              "query": [
-                {
-                  "key": "academic_year",
-                  "value": "{{academicYear}}"
-                }
+                "{{dynamicCourseId}}"
               ]
             }
           },
           "response": []
         },
         {
-          "name": "POST /api/faculty/exams",
+          "name": "POST /api/faculty/exams (Future Exam)",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const start = new Date(Date.now() + 20 * 60 * 1000);",
+                  "const unique = String(Date.now()).slice(-5);",
+                  "pm.collectionVariables.set('futureExamTitle', 'Future Exam ' + unique);",
+                  "pm.collectionVariables.set('futureExamStartDateTime', start.toISOString());"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) {",
-                  "  var json = pm.response.json();",
-                  "  if (json.id) pm.collectionVariables.set('examId', String(json.id));",
-                  "}"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Future exam is created', function () { pm.response.to.have.status(201); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('futureExamId', String(json.id));"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
+            "description": "Expected: `201` with created future exam object.",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{facultyToken}}"
+                "value": "Bearer {{dynamicFacultyToken}}"
               },
               {
                 "key": "Content-Type",
@@ -675,7 +889,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"title\": \"DS Unit Test 1\",\n  \"course_id\": {{courseId}},\n  \"academic_year\": \"{{academicYear}}\",\n  \"start_datetime\": \"{{examStartDateTime}}\",\n  \"duration_minutes\": 30,\n  \"num_questions\": 5\n}"
+              "raw": "{\n  \"title\": {{futureExamTitle}},\n  \"course_id\": {{dynamicCourseId}},\n  \"academic_year\": {{seededAcademicYear}},\n  \"start_datetime\": {{futureExamStartDateTime}},\n  \"duration_minutes\": 30,\n  \"num_questions\": 5\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/faculty/exams",
@@ -692,27 +906,29 @@
           "response": []
         },
         {
-          "name": "GET /api/faculty/exams",
+          "name": "GET /api/faculty/exams (Seeded Faculty)",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "var json = pm.response.json();",
-                  "if (Array.isArray(json) && json.length > 0 && !pm.collectionVariables.get('examId')) {",
-                  "  pm.collectionVariables.set('examId', String(json[0].id));",
-                  "}"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Seeded faculty exams load', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const ongoing = json.find((exam) => exam.title === pm.collectionVariables.get('seededExamTitle') && exam.status === 'Ongoing');",
+                  "pm.expect(ongoing).to.exist;",
+                  "pm.collectionVariables.set('ongoingExamId', String(ongoing.id));"
+                ]
               }
             }
           ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with the seeded ongoing exam and any submitted attempt counts.",
             "header": [
               {
                 "key": "Authorization",
-                "value": "Bearer {{facultyToken}}"
+                "value": "Bearer {{seededFacultyToken}}"
               }
             ],
             "url": {
@@ -728,93 +944,29 @@
             }
           },
           "response": []
-        },
-        {
-          "name": "GET /api/faculty/exams/:examId/leaderboard",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{facultyToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/faculty/exams/{{examId}}/leaderboard",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "faculty",
-                "exams",
-                "{{examId}}",
-                "leaderboard"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "GET /api/faculty/exams/:examId/leaderboard/export-csv",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{facultyToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/faculty/exams/{{examId}}/leaderboard/export-csv",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "faculty",
-                "exams",
-                "{{examId}}",
-                "leaderboard",
-                "export-csv"
-              ]
-            }
-          },
-          "response": []
         }
       ]
     },
     {
-      "name": "Student",
+      "name": "Student And Exam Flow",
       "item": [
         {
-          "name": "GET /api/student/courses",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{studentToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/student/courses",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "student",
-                "courses"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "POST /api/student/enroll",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Dynamic student enrolls into seeded course', function () { pm.response.to.have.status(201); });",
+                  "pm.expect(pm.response.json().message).to.eql('Enrolled successfully');"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
+            "description": "Expected: `201` with `{ message: \"Enrolled successfully\" }` for the dynamic student.",
             "header": [
               {
                 "key": "Authorization",
@@ -827,7 +979,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"course_id\": {{courseId}}\n}"
+              "raw": "{\n  \"course_id\": {{seededCourseId}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/student/enroll",
@@ -845,8 +997,23 @@
         },
         {
           "name": "GET /api/student/my-courses",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Dynamic student my-courses succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const matched = json.find((course) => course.course_code === pm.collectionVariables.get('seededCourseCode'));",
+                  "pm.expect(matched).to.exist;"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with the seeded course and computed exam status.",
             "header": [
               {
                 "key": "Authorization",
@@ -873,20 +1040,19 @@
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "var json = pm.response.json();",
-                  "if (Array.isArray(json)) {",
-                  "  var target = json.find(function (e) { return String(e.exam_id) === pm.collectionVariables.get('examId'); }) || json[0];",
-                  "  if (target && target.exam_id) pm.collectionVariables.set('examId', String(target.exam_id));",
-                  "  if (target && target.attempt_id) pm.collectionVariables.set('attemptId', String(target.attempt_id));",
-                  "}"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Dynamic student my-exams succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "const target = json.find((exam) => String(exam.exam_id) === pm.collectionVariables.get('ongoingExamId'));",
+                  "pm.expect(target).to.exist;"
+                ]
               }
             }
           ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with the seeded ongoing exam visible to the dynamic student.",
             "header": [
               {
                 "key": "Authorization",
@@ -908,55 +1074,26 @@
           "response": []
         },
         {
-          "name": "GET /api/student/my-results",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{studentToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/student/my-results",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "student",
-                "my-results"
-              ]
-            }
-          },
-          "response": []
-        }
-      ]
-    },
-    {
-      "name": "Exam Attempt (Student)",
-      "item": [
-        {
           "name": "POST /api/exam/:examId/start",
           "event": [
             {
               "listen": "test",
               "script": {
+                "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 200) {",
-                  "  var json = pm.response.json();",
-                  "  if (json.attempt_id) pm.collectionVariables.set('attemptId', String(json.attempt_id));",
-                  "  if (json.questions && json.questions.length > 0) {",
-                  "    pm.collectionVariables.set('attemptQuestionId', String(json.questions[0].attempt_question_id));",
-                  "  }",
-                  "}"
-                ],
-                "type": "text/javascript"
+                  "pm.test('Exam start succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.collectionVariables.set('attemptId', String(json.attempt_id));",
+                  "pm.collectionVariables.set('attemptQuestionId', String(json.questions[0].attempt_question_id));",
+                  "pm.expect(Array.isArray(json.questions)).to.eql(true);",
+                  "pm.expect(json.questions.length).to.be.above(0);"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
+            "description": "Expected: `200` with `attempt_id`, exam metadata, and shuffled questions without correct answers.",
             "header": [
               {
                 "key": "Authorization",
@@ -964,14 +1101,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/exam/{{examId}}/start",
+              "raw": "{{baseUrl}}/api/exam/{{ongoingExamId}}/start",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "api",
                 "exam",
-                "{{examId}}",
+                "{{ongoingExamId}}",
                 "start"
               ]
             }
@@ -980,8 +1117,21 @@
         },
         {
           "name": "PATCH /api/exam/attempt/:attemptId/answer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Answer save succeeds', function () { pm.response.to.have.status(200); });",
+                  "pm.expect(pm.response.json().message).to.eql('Answer saved');"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "PATCH",
+            "description": "Expected: `200` with `{ message: \"Answer saved\" }`.",
             "header": [
               {
                 "key": "Authorization",
@@ -1014,8 +1164,23 @@
         },
         {
           "name": "POST /api/exam/attempt/:attemptId/submit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Exam submit succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.message).to.eql('Exam submitted');",
+                  "['score', 'total', 'percentage', 'rank'].forEach((key) => pm.expect(json).to.have.property(key));"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
+            "description": "Expected: `200` with `{ message, score, total, percentage, rank }`.",
             "header": [
               {
                 "key": "Authorization",
@@ -1040,8 +1205,23 @@
         },
         {
           "name": "GET /api/exam/attempt/:attemptId/result",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Exam result loads', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json).to.have.property('questions');",
+                  "pm.expect(json.questions.length).to.be.above(0);"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
+            "description": "Expected: `200` with result summary, correct answer positions, and question review data.",
             "header": [
               {
                 "key": "Authorization",
@@ -1059,6 +1239,126 @@
                 "attempt",
                 "{{attemptId}}",
                 "result"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/student/my-results",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Student results succeed', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.some((row) => String(row.exam_id) === pm.collectionVariables.get('ongoingExamId'))).to.eql(true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "description": "Expected: `200` with the submitted exam in the student result list.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{studentToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/student/my-results",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "student",
+                "my-results"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/faculty/exams/:examId/leaderboard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Leaderboard succeeds', function () { pm.response.to.have.status(200); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(Array.isArray(json)).to.eql(true);",
+                  "pm.expect(json.length).to.be.above(0);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "description": "Expected: `200` with ranked student results for the seeded ongoing exam.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seededFacultyToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/faculty/exams/{{ongoingExamId}}/leaderboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "faculty",
+                "exams",
+                "{{ongoingExamId}}",
+                "leaderboard"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/faculty/exams/:examId/leaderboard/export-csv",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Leaderboard CSV succeeds', function () { pm.response.to.have.status(200); });",
+                  "pm.test('Leaderboard CSV content-type is text/csv', function () { pm.expect(pm.response.headers.get('Content-Type')).to.include('text/csv'); });",
+                  "pm.test('Leaderboard CSV includes Rank header', function () { pm.expect(pm.response.text()).to.include('Rank'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "description": "Expected: `200` CSV download with header row beginning `Rank,Full Name,Username,...`.",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{seededFacultyToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/faculty/exams/{{ongoingExamId}}/leaderboard/export-csv",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "faculty",
+                "exams",
+                "{{ongoingExamId}}",
+                "leaderboard",
+                "export-csv"
               ]
             }
           },

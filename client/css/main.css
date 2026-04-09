@@ -1,33 +1,50 @@
 :root {
-  --primary: #0b3558;
-  --primary-dark: #07233a;
-  --success: #0f8b63;
-  --danger: #bd2f45;
-  --warning: #b97817;
-  --info: #1f5ea7;
-  --grey: #6a6f77;
-  --bg: #f5f7fa;
+  --primary: #12324a;
+  --primary-strong: #0c2234;
+  --accent: #c6924f;
+  --accent-soft: #efd9bc;
+  --success: #178a69;
+  --danger: #b33a4f;
+  --warning: #a86b19;
+  --info: #245f9c;
+  --grey: #6f7680;
+  --bg: #f3efe8;
+  --panel: rgba(255, 252, 246, 0.82);
   --white: #ffffff;
-  --border: #e1e7ef;
-  --text: #1b2430;
-  --text-muted: #687485;
-  --sidebar-width: 274px;
-  --header-height: 74px;
-  --radius: 16px;
-  --shadow: 0 16px 42px rgba(17, 39, 66, 0.1);
+  --border: rgba(24, 50, 74, 0.12);
+  --text: #1d2430;
+  --text-muted: #6d7480;
+  --sidebar-width: 290px;
+  --header-height: 78px;
+  --radius: 22px;
+  --shadow: 0 24px 60px rgba(21, 33, 48, 0.12);
+  --shadow-strong: 0 28px 80px rgba(13, 24, 36, 0.18);
 }
 
 body {
   margin: 0;
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
   color: var(--text);
-  line-height: 1.5;
+  line-height: 1.55;
   letter-spacing: 0.1px;
+  font-family: "Aptos", "Segoe UI Variable", "Segoe UI", "Trebuchet MS", sans-serif;
   background:
-    radial-gradient(circle at 8% -5%, #d9e9ff 0%, transparent 30%),
-    radial-gradient(circle at 100% 15%, #e9f4ff 0%, transparent 35%),
-    linear-gradient(165deg, #f8fbff 0%, #f3f7fc 52%, #eef3f9 100%);
+    radial-gradient(circle at 0% 0%, rgba(198, 146, 79, 0.18), transparent 28%),
+    radial-gradient(circle at 100% 14%, rgba(32, 87, 139, 0.15), transparent 26%),
+    linear-gradient(145deg, #f6f0e8 0%, #f9f8f4 45%, #eef3f6 100%);
   min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(circle at center, black 35%, transparent 90%);
+  opacity: 0.22;
 }
 
 .hidden {
@@ -41,51 +58,64 @@ body {
   width: var(--sidebar-width);
   height: 100vh;
   z-index: 100;
-  color: #eef5ff;
+  color: #f8efe2;
   background:
-    radial-gradient(circle at 18% -8%, rgba(87, 162, 255, 0.28), transparent 35%),
-    linear-gradient(180deg, #0c3558 0%, #0b2c49 52%, #091f34 100%);
-  box-shadow: 14px 0 34px rgba(9, 27, 45, 0.35);
+    radial-gradient(circle at 18% 10%, rgba(198, 146, 79, 0.24), transparent 26%),
+    linear-gradient(180deg, #112c43 0%, #0d2235 46%, #0a1b2a 100%);
+  box-shadow: 18px 0 40px rgba(10, 19, 31, 0.28);
   display: flex;
   flex-direction: column;
 }
 
 .sidebar .logo {
-  padding: 24px 22px;
-  font-size: 1.2rem;
+  padding: 28px 24px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 1.45rem;
   font-weight: 700;
-  letter-spacing: 0.4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  letter-spacing: 0.5px;
+}
+
+.sidebar .logo::after {
+  content: "Assessment Suite";
+  display: block;
+  margin-top: 6px;
+  color: rgba(248, 239, 226, 0.64);
+  font-family: "Aptos", "Segoe UI", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .sidebar nav {
-  padding-top: 10px;
+  padding: 16px 14px 0;
 }
 
 .sidebar nav a {
   display: block;
-  margin: 8px 12px 0;
-  border-radius: 12px;
-  padding: 12px 14px;
-  color: rgba(238, 245, 255, 0.8);
+  margin: 8px 0 0;
+  border-radius: 16px;
+  padding: 13px 15px;
+  color: rgba(248, 239, 226, 0.82);
   text-decoration: none;
   border: 1px solid transparent;
-  transition: all 0.2s ease;
+  transition: all 0.22s ease;
 }
 
 .sidebar nav a:hover,
 .sidebar nav a.active {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateX(2px);
+  color: #fffdf8;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(198, 146, 79, 0.16));
+  border-color: rgba(255, 255, 255, 0.14);
+  transform: translateX(3px);
 }
 
 .sidebar .logout-btn {
-  margin: auto 12px 14px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  margin: auto 14px 18px;
+  padding: 13px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
   color: #fff;
   cursor: pointer;
@@ -103,20 +133,21 @@ body {
   right: 0;
   z-index: 99;
   height: var(--header-height);
-  padding: 0 30px;
+  padding: 0 34px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.86);
-  backdrop-filter: blur(9px);
-  box-shadow: 0 8px 24px rgba(11, 37, 61, 0.08);
+  border-bottom: 1px solid rgba(18, 50, 74, 0.08);
+  background: rgba(255, 251, 245, 0.78);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 10px 30px rgba(24, 39, 57, 0.08);
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 12px;
+  font-weight: 700;
 }
 
 #hamburger {
@@ -127,7 +158,7 @@ body {
   margin-left: var(--sidebar-width);
   margin-top: var(--header-height);
   min-height: calc(100vh - var(--header-height));
-  padding: 32px 30px;
+  padding: 34px 34px 40px;
 }
 
 .app-content--auth {
@@ -136,17 +167,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 28px;
 }
 
 .page-head {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .page-title {
   margin: 0 0 8px;
-  font-size: 1.95rem;
-  font-weight: 800;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .page-subtitle {
@@ -155,11 +188,11 @@ body {
 }
 
 .section-gap {
-  margin-top: 22px;
+  margin-top: 24px;
 }
 
 .table-wrap {
-  max-height: 500px;
+  max-height: 520px;
   overflow-y: auto;
   border-radius: var(--radius);
 }
@@ -173,7 +206,7 @@ body {
 .two-col {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 16px;
+  gap: 18px;
 }
 
 .muted {
@@ -197,17 +230,17 @@ body {
 
   #hamburger {
     display: inline-block;
-    border: 1px solid #c9d7e8;
-    background: #f2f7fd;
+    border: 1px solid #d9d0c3;
+    background: rgba(255, 252, 246, 0.92);
     color: var(--primary);
     padding: 8px 10px;
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
   }
 
   .app-content {
     margin-left: 0;
-    padding: 18px 16px;
+    padding: 20px 16px 28px;
   }
 
   .two-col {

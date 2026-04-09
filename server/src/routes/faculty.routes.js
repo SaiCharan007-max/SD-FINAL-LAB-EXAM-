@@ -18,11 +18,11 @@ const router = express.Router();
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, callback) => {
-    if (/\.(xlsx|xls)$/i.test(file.originalname)) {
+    if (/\.(xlsx|xls|csv)$/i.test(file.originalname)) {
       return callback(null, true);
     }
 
-    const error = new Error('Only Excel files are allowed');
+    const error = new Error('Only Excel or CSV files are allowed');
     error.status = 400;
     return callback(error);
   }

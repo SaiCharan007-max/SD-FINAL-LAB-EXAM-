@@ -6,18 +6,34 @@ async function renderStudentMyCourses() {
   const app = document.getElementById("app");
   app.innerHTML = `<div class="page-head"><h2 class="page-title">My Courses</h2></div><div class="card"><div id="my-courses-wrap"></div></div>`;
   showSpinner("my-courses-wrap");
+
   try {
-    const data = await apiGetMyCourses();
-    const rows = data.courses || data || [];
+    const rows = await apiGetMyCourses();
     if (!rows.length) {
-      showEmptyState("my-courses-wrap", "You are not enrolled in any course yet", "📘");
+      showEmptyState("my-courses-wrap", "You are not enrolled in any course yet");
       return;
     }
+
     document.getElementById("my-courses-wrap").innerHTML = `
       <div class="table-wrap">
         <table class="data-table">
-          <thead><tr><th>#</th><th>Course</th><th>Code</th><th>Year / AY</th></tr></thead>
-          <tbody>${rows.map((c, i) => `<tr><td>${i + 1}</td><td>${c.course_name || c.name}</td><td>${c.course_code || "-"}</td><td>${formatYearWithAcademic(c.academic_year)}</td></tr>`).join("")}</tbody>
+          <thead><tr><th>#</th><th>Course</th><th>Code</th><th>Student Year</th><th>Academic Year</th><th>Exam Status</th></tr></thead>
+          <tbody>
+            ${rows
+              .map(
+                (course, index) => `
+                  <tr>
+                    <td>${index + 1}</td>
+                    <td>${course.course_name}</td>
+                    <td>${course.course_code || "-"}</td>
+                    <td>${formatYearLevel(course.student_year)}</td>
+                    <td>${formatYearWithAcademic(course.academic_year)}</td>
+                    <td>${getStatusBadgeHTML(course.exam_status || "Not Scheduled")}</td>
+                  </tr>
+                `
+              )
+              .join("")}
+          </tbody>
         </table>
       </div>
     `;

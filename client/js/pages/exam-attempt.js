@@ -1,4 +1,4 @@
-// Exam attempt engine: question rendering, palette, timer, submit flow.
+// Exam attempt engine.
 let examState = {
   attemptId: null,
   questions: [],
@@ -21,12 +21,27 @@ async function renderExamAttempt() {
     <div id="exam-root"></div>
   `;
   showSpinner("exam-loader");
+
   try {
     const data = await apiStartExam(examId);
-    const attemptId = data.attempt_id || data.attemptId || localStorage.getItem("activeAttemptId");
     const questions = data.questions || [];
-    examState = { attemptId, questions, answers: {}, currentIndex: 0, timerInterval: null };
-    localStorage.setItem("activeAttemptId", String(attemptId));
+    const answers = {};
+
+    questions.forEach((question) => {
+      if (question.student_answer != null) {
+        answers[question.attempt_question_id] = question.student_answer;
+      }
+    });
+
+    examState = {
+      attemptId: data.attempt_id || localStorage.getItem("activeAttemptId"),
+      questions,
+      answers,
+      currentIndex: 0,
+      timerInterval: null
+    };
+
+    localStorage.setItem("activeAttemptId", String(examState.attemptId));
     document.getElementById("exam-loader").innerHTML = "";
     document.getElementById("exam-root").innerHTML = `
       <div class="exam-container">
@@ -35,9 +50,7 @@ async function renderExamAttempt() {
           <div id="exam-timer" class="exam-timer">00:00</div>
         </div>
         <div class="exam-main">
-          <div class="exam-question-panel">
-            <div id="question-container"></div>
-          </div>
+          <div class="exam-question-panel"><div id="question-container"></div></div>
           <aside class="exam-sidebar-panel">
             <div id="palette-summary" class="muted"></div>
             <div id="palette-grid" class="palette-grid"></div>
@@ -46,6 +59,7 @@ async function renderExamAttempt() {
         </div>
       </div>
     `;
+
     renderQuestion(0);
     renderPalette();
     startCountdown(data.exam?.end_datetime);
@@ -56,44 +70,44 @@ async function renderExamAttempt() {
 }
 
 function renderQuestion(index) {
-  const q = examState.questions[index];
-  if (!q) return;
-  const opts = q.options || q.choices || [];
-  const selected = examState.answers[q.attempt_question_id];
+  const question = examState.questions[index];
+  if (!question) return;
+
+  const selected = examState.answers[question.attempt_question_id];
   document.getElementById("question-container").innerHTML = `
     <div class="question-number">Question ${index + 1} / ${examState.questions.length}</div>
-    <div class="question-text">${q.question_text}</div>
+    <div class="question-text">${question.question_text}</div>
     <div>
-      ${opts.map((opt) => {
-        const isSel = selected === opt.position;
-        return `
-          <label class="option-label ${isSel ? "option-selected" : ""}" onclick="selectAnswer(${q.attempt_question_id}, ${opt.position})">
-            <input type="radio" ${isSel ? "checked" : ""}/>
-            <span class="option-position">${opt.position}.</span>
-            <span>${opt.option_text || opt.text}</span>
-          </label>
-        `;
-      }).join("")}
+      ${(question.options || [])
+        .map((option) => {
+          const isSelected = selected === option.position;
+          return `
+            <label class="option-label ${isSelected ? "option-selected" : ""}" onclick="selectAnswer(${question.attempt_question_id}, ${option.position})">
+              <input type="radio" ${isSelected ? "checked" : ""} />
+              <span class="option-position">${option.position}.</span>
+              <span>${option.text}</span>
+            </label>
+          `;
+        })
+        .join("")}
     </div>
     <div class="exam-nav">
-      <button class="btn btn-blue" onclick="goToQuestion(${index - 1})" ${index === 0 ? "disabled" : ""}>← Previous</button>
-      <button class="btn btn-blue" onclick="goToQuestion(${index + 1})" ${index === examState.questions.length - 1 ? "disabled" : ""}>Next →</button>
+      <button class="btn btn-blue" onclick="goToQuestion(${index - 1})" ${index === 0 ? "disabled" : ""}>Previous</button>
+      <button class="btn btn-blue" onclick="goToQuestion(${index + 1})" ${index === examState.questions.length - 1 ? "disabled" : ""}>Next</button>
     </div>
   `;
 }
 
 function renderPalette() {
-  const grid = document.getElementById("palette-grid");
-  if (!grid) return;
-  grid.innerHTML = examState.questions
-    .map((q, i) => {
-      const answered = examState.answers[q.attempt_question_id] != null;
-      const current = i === examState.currentIndex;
-      return `<div class="palette-box ${answered ? "palette-answered" : "palette-unanswered"} ${current ? "palette-current" : ""}" onclick="goToQuestion(${i})">${i + 1}</div>`;
+  const answeredCount = Object.values(examState.answers).filter((value) => value != null).length;
+  document.getElementById("palette-summary").textContent = `Answered: ${answeredCount} / ${examState.questions.length}`;
+  document.getElementById("palette-grid").innerHTML = examState.questions
+    .map((question, index) => {
+      const answered = examState.answers[question.attempt_question_id] != null;
+      const current = index === examState.currentIndex;
+      return `<div class="palette-box ${answered ? "palette-answered" : "palette-unanswered"} ${current ? "palette-current" : ""}" onclick="goToQuestion(${index})">${index + 1}</div>`;
     })
     .join("");
-  const answeredCount = Object.values(examState.answers).filter((v) => v != null).length;
-  document.getElementById("palette-summary").textContent = `Answered: ${answeredCount} / ${examState.questions.length}`;
 }
 
 function goToQuestion(index) {
@@ -114,12 +128,15 @@ function startCountdown(endDatetime) {
   const endTime = new Date(endDatetime).getTime();
   examState.timerInterval = setInterval(() => {
     const remaining = Math.max(0, endTime - Date.now());
-    const mins = Math.floor(remaining / 60000);
-    const secs = Math.floor((remaining % 60000) / 1000);
+    const minutes = Math.floor(remaining / 60000);
+    const seconds = Math.floor((remaining % 60000) / 1000);
     const timer = document.getElementById("exam-timer");
+
     if (!timer) return;
-    timer.textContent = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+
+    timer.textContent = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     timer.classList.toggle("exam-timer--danger", remaining < 5 * 60000);
+
     if (remaining <= 0) {
       clearInterval(examState.timerInterval);
       autoSubmitExam();
@@ -128,11 +145,10 @@ function startCountdown(endDatetime) {
 }
 
 function submitPrompt() {
-  const answeredCount = Object.values(examState.answers).filter((v) => v != null).length;
+  const answeredCount = Object.values(examState.answers).filter((value) => value != null).length;
   showModal(`
     <h3>Submit Exam?</h3>
     <p>You have answered <strong>${answeredCount}</strong> of <strong>${examState.questions.length}</strong> questions.</p>
-    <p>Unanswered questions will be marked as <em>Not Attempted</em>.</p>
     <div class="modal-actions">
       <button class="btn" onclick="hideModal()">Cancel</button>
       <button class="btn btn-danger" onclick="confirmSubmit()">Submit</button>
@@ -141,16 +157,23 @@ function submitPrompt() {
 }
 
 async function autoSubmitExam() {
-  await apiSubmitExam(examState.attemptId);
-  localStorage.removeItem("activeAttemptId");
-  navigate(`#/exam/result?attemptId=${examState.attemptId}`);
+  try {
+    await apiSubmitExam(examState.attemptId);
+    localStorage.removeItem("activeAttemptId");
+    navigate(`#/exam/result?attemptId=${examState.attemptId}`);
+  } catch (err) {
+    showToast(err.message, "error");
+  }
 }
 
 async function confirmSubmit() {
   hideModal();
   clearInterval(examState.timerInterval);
-  showToast("Submitting exam...", "info");
-  await apiSubmitExam(examState.attemptId);
-  localStorage.removeItem("activeAttemptId");
-  navigate(`#/exam/result?attemptId=${examState.attemptId}`);
+  try {
+    await apiSubmitExam(examState.attemptId);
+    localStorage.removeItem("activeAttemptId");
+    navigate(`#/exam/result?attemptId=${examState.attemptId}`);
+  } catch (err) {
+    showToast(err.message, "error");
+  }
 }

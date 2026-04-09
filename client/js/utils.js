@@ -173,7 +173,7 @@ function renderHeader(fullName, role) {
   const header = document.getElementById("top-header");
   header.innerHTML = `
     <div class="header-left">
-      <button id="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      <button id="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">Menu</button>
       <strong>Welcome, ${fullName || "User"}</strong>
     </div>
     <span class="badge badge-code">${String(role || "").toUpperCase()}</span>
@@ -191,7 +191,7 @@ function showAppLayout() {
   document.getElementById("app").classList.remove("app-content--auth");
 }
 
-function showEmptyState(containerId, message, icon = "📭") {
+function showEmptyState(containerId, message, icon = "00") {
   const container = document.getElementById(containerId);
   if (!container) return;
   container.innerHTML = `
@@ -212,6 +212,16 @@ function formatYearLevel(value) {
   return String(value);
 }
 
+function getStudentYearOptions() {
+  return ["1st Year", "2nd Year", "3rd Year", "4th Year"];
+}
+
+function renderStudentYearOptions(selectedValue = "1st Year") {
+  return getStudentYearOptions()
+    .map((studentYear) => `<option value="${studentYear}" ${studentYear === selectedValue ? "selected" : ""}>${studentYear}</option>`)
+    .join("");
+}
+
 function getCurrentAcademicYear(startMonthIndex = 5) {
   const now = new Date();
   const month = now.getMonth();
@@ -222,7 +232,24 @@ function getCurrentAcademicYear(startMonthIndex = 5) {
 }
 
 function formatYearWithAcademic(value) {
+  if (/^\d{4}-\d{2}$/.test(String(value || "").trim())) {
+    return `AY ${value}`;
+  }
   return `${formatYearLevel(value)} (AY ${getCurrentAcademicYear()})`;
+}
+
+function getAcademicYearOptions(count = 3, startOffset = -1) {
+  return Array.from({ length: count }, (_, index) => {
+    const baseYear = new Date().getFullYear() + startOffset + index;
+    const endYearShort = String((baseYear + 1) % 100).padStart(2, "0");
+    return `${baseYear}-${endYearShort}`;
+  });
+}
+
+function renderAcademicYearOptions(selectedValue = getCurrentAcademicYear()) {
+  return getAcademicYearOptions()
+    .map((academicYear) => `<option value="${academicYear}" ${academicYear === selectedValue ? "selected" : ""}>${academicYear}</option>`)
+    .join("");
 }
 
 // Only close modals using explicit buttons; overlay click is ignored by requirement.

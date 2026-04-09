@@ -33,6 +33,7 @@ const getAssignedCourses = async (req, res, next) => {
          c.course_name,
          c.course_code,
          c.description,
+         c.student_year,
          c.academic_year,
          COUNT(DISTINCT e.student_id) AS enrolled_student_count,
          COUNT(DISTINCT ex.id) AS exam_count
@@ -49,6 +50,7 @@ const getAssignedCourses = async (req, res, next) => {
     return res.status(200).json(
       result.rows.map((row) => ({
         ...row,
+        student_year: row.student_year,
         enrolled_student_count: Number(row.enrolled_student_count),
         exam_count: Number(row.exam_count)
       }))
@@ -64,7 +66,7 @@ const uploadQuestions = async (req, res, next) => {
     const { academic_year } = req.body;
 
     if (!req.file) {
-      return res.status(400).json({ error: 'Excel file is required' });
+      return res.status(400).json({ error: 'Excel or CSV question bank file is required' });
     }
 
     if (!(await isFacultyAssignedToCourse(req.user.id, courseId))) {

@@ -20,10 +20,24 @@ Run the schema on PostgreSQL:
 psql -U postgres -d SDENDLAB -f migrations/schema.sql
 ```
 
+If your database was already created before the student year update, run this migration too:
+
+```bash
+psql -U postgres -d SDENDLAB -f migrations/002_add_student_year_fields.sql
+```
+
 ## Seed admin user
 
 ```bash
 npm run seed
+```
+
+## Seed repeatable test data
+
+This creates or refreshes the seeded faculty, course, questions, ongoing exam, and a Postman-ready Excel file at `postman-assets/questions.xlsx`.
+
+```bash
+npm run seed:testdata
 ```
 
 Seeded admin login:
@@ -35,6 +49,22 @@ Seeded admin login:
 
 ```bash
 npm run dev
+```
+
+## Run the smoke test
+
+Start the server first, then run:
+
+```bash
+npm run smoke
+```
+
+## Rebuild the Postman collection
+
+If you want to regenerate `postman.json` with the current local workbook path:
+
+```bash
+npm run postman:build
 ```
 
 ## Notes

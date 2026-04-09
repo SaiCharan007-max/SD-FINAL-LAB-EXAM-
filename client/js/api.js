@@ -17,32 +17,50 @@ async function apiRequest(method, path, body, isFormData = false) {
   const response = await fetch(`${CONFIG.API_BASE_URL}${path}`, options);
   if (!response.ok) {
     const errorText = await response.text();
-    if (response.status === 401) {
+    let message = errorText || "Request failed";
+
+    try {
+      const parsed = JSON.parse(errorText);
+      if (parsed.error) {
+        message = parsed.error;
+      } else if (Array.isArray(parsed.errors) && parsed.errors.length) {
+        message = parsed.errors
+          .map((error) => error.message || error.reason || JSON.stringify(error))
+          .join(", ");
+      }
+    } catch (err) {
+      // Keep plain text message when the response is not JSON.
+    }
+
+    if (response.status === 401 && token && path !== "/auth/login") {
       logout();
     }
-    const err = new Error(errorText || "Request failed");
+    const err = new Error(message);
+    err.status = response.status;
     throw err;
   }
   if (response.status === 204) return {};
-  return response.json();
+  const text = await response.text();
+  return text ? JSON.parse(text) : {};
 }
 
-function apiLogin(username, password, selectedRole) {
+function apiLogin(username, password, role) {
   if (CONFIG.MOCK_MODE) {
     return mockApiRequest("POST", "/auth/login", {
       username,
       password,
-      selectedRole
+      role
     });
   }
-  return apiRequest("POST", "/auth/login", { username, password });
+  return apiRequest("POST", "/auth/login", { username, password, role });
 }
 
-function apiRegister(full_name, email, username, password, confirm_password) {
+function apiRegister(full_name, email, username, current_year, password, confirm_password) {
   return apiRequest("POST", "/auth/register", {
     full_name,
     email,
     username,
+    current_year,
     password,
     confirm_password
   });
@@ -64,11 +82,12 @@ function apiGetAdminCourses() {
   return apiRequest("GET", "/admin/courses");
 }
 
-function apiCreateCourse(course_name, course_code, description, academic_year) {
+function apiCreateCourse(course_name, course_code, description, student_year, academic_year) {
   return apiRequest("POST", "/admin/courses", {
     course_name,
     course_code,
     description,
+    student_year,
     academic_year
   });
 }
@@ -78,7 +97,7 @@ function apiAssignFaculty(courseId, faculty_ids) {
 }
 
 function apiRemoveFaculty(courseId, facultyId) {
-  return apiRequest("DELETE", `/admin/courses/${courseId}/faculty/${facultyId}`);
+  return apiRequest("DELETE", `/admin/courses/${courseId}/assign-faculty/${facultyId}`);
 }
 
 function apiGetFacultyCourses() {
@@ -90,7 +109,7 @@ function apiUploadQuestions(formData) {
 }
 
 function apiGetQuestions(courseId, academic_year) {
-  return apiRequest("GET", `/faculty/questions?courseId=${courseId}&academic_year=${encodeURIComponent(academic_year)}`);
+  return apiRequest("GET", `/faculty/questions/${courseId}?academic_year=${encodeURIComponent(academic_year)}`);
 }
 
 function apiGetFacultyExams() {
@@ -117,7 +136,7 @@ async function apiExportLeaderboardCSV(examId) {
     return mockApiRequest("GET", `/faculty/exams/${examId}/leaderboard/export`);
   }
   const token = getToken();
-  const response = await fetch(`${CONFIG.API_BASE_URL}/faculty/exams/${examId}/leaderboard/export`, {
+  const response = await fetch(`${CONFIG.API_BASE_URL}/faculty/exams/${examId}/leaderboard/export-csv`, {
     headers: { Authorization: `Bearer ${token}` }
   });
   if (!response.ok) throw new Error(await response.text());
@@ -145,22 +164,22 @@ function apiGetMyResults() {
 }
 
 function apiStartExam(examId) {
-  return apiRequest("POST", `/student/exams/${examId}/start`);
+  return apiRequest("POST", `/exam/${examId}/start`);
 }
 
 function apiSaveAnswer(attemptId, attempt_question_id, student_answer) {
-  return apiRequest("POST", `/student/attempts/${attemptId}/answer`, {
+  return apiRequest("PATCH", `/exam/attempt/${attemptId}/answer`, {
     attempt_question_id,
     student_answer
   });
 }
 
 function apiSubmitExam(attemptId) {
-  return apiRequest("POST", `/student/attempts/${attemptId}/submit`);
+  return apiRequest("POST", `/exam/attempt/${attemptId}/submit`);
 }
 
 function apiGetExamResult(attemptId) {
-  return apiRequest("GET", `/student/attempts/${attemptId}/result`);
+  return apiRequest("GET", `/exam/attempt/${attemptId}/result`);
 }
 
 function createMockToken(role) {
@@ -192,9 +211,9 @@ function getMockDatabase() {
       { id: 3, faculty_id: 3, full_name: "Dr. Sneha Iyer", email: "sneha@college.edu", employee_id: "FAC103", temp_password: "TMPSNH789" }
     ],
     courses: [
-      { course_id: 1, id: 1, course_name: "Data Structures", course_code: "CS201", description: "Core DS", academic_year: "2nd Year", assigned_faculty: [{ id: 1, full_name: "Dr. Priya Nair" }], enrolled_students: 78 },
-      { course_id: 2, id: 2, course_name: "Database Systems", course_code: "CS301", description: "SQL and DBMS", academic_year: "3rd Year", assigned_faculty: [{ id: 2, full_name: "Prof. Arjun Rao" }], enrolled_students: 64 },
-      { course_id: 3, id: 3, course_name: "Operating Systems", course_code: "CS302", description: "OS concepts", academic_year: "4th Year", assigned_faculty: [{ id: 3, full_name: "Dr. Sneha Iyer" }], enrolled_students: 52 }
+      { course_id: 1, id: 1, course_name: "Data Structures", course_code: "CS201", description: "Core DS", student_year: "2nd Year", academic_year: "2026-27", assigned_faculty: [{ id: 1, full_name: "Dr. Priya Nair" }], enrolled_students: 78 },
+      { course_id: 2, id: 2, course_name: "Database Systems", course_code: "CS301", description: "SQL and DBMS", student_year: "3rd Year", academic_year: "2026-27", assigned_faculty: [{ id: 2, full_name: "Prof. Arjun Rao" }], enrolled_students: 64 },
+      { course_id: 3, id: 3, course_name: "Operating Systems", course_code: "CS302", description: "OS concepts", student_year: "4th Year", academic_year: "2026-27", assigned_faculty: [{ id: 3, full_name: "Dr. Sneha Iyer" }], enrolled_students: 52 }
     ],
     exams: [
       {
@@ -249,7 +268,7 @@ async function mockApiRequest(method, path, body) {
   if (method === "POST" && path === "/auth/login") {
     const u = String(body.username || "").toLowerCase();
     const role =
-      body.selectedRole ||
+      body.role ||
       (u.includes("admin") ? "admin" : u.includes("faculty") ? "faculty" : "student");
     return {
       token: createMockToken(role),
@@ -279,7 +298,9 @@ async function mockApiRequest(method, path, body) {
   if (method === "GET" && path === "/admin/courses") return { courses: db.courses };
   if (method === "POST" && path === "/admin/courses") return { message: "Course created", course_id: 99 };
   if (method === "POST" && /\/admin\/courses\/\d+\/assign-faculty$/.test(path)) return { message: "Faculty assigned" };
-  if (method === "DELETE" && /\/admin\/courses\/\d+\/faculty\/\d+$/.test(path)) return { message: "Faculty removed" };
+  if (method === "DELETE" && /\/admin\/courses\/\d+\/assign-faculty\/\d+$/.test(path)) {
+    return { message: "Faculty removed" };
+  }
 
   // FACULTY
   if (method === "GET" && path === "/faculty/courses") return { courses: db.courses };

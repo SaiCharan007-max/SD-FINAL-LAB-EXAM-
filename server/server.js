@@ -1,6 +1,7 @@
 import cors from 'cors';
 import dotenv from 'dotenv';
 import express from 'express';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
 import authMiddleware from './src/middleware/auth.js';
@@ -15,9 +16,12 @@ dotenv.config();
 
 const app = express();
 const currentFile = fileURLToPath(import.meta.url);
+const currentDir = path.dirname(currentFile);
+const clientDir = path.resolve(currentDir, '..', 'client');
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(clientDir, { index: false }));
 app.use((req, res, next) => {
   console.log(`[ROUTE] ${req.method} ${req.originalUrl}`);
   next();

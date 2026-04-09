@@ -1,0 +1,13 @@
+question_text,option_a,option_b,option_c,option_d,correct_answer,difficulty
+"Which data structure uses FIFO order?","Stack","Queue","Tree","Graph","B","Easy"
+"What is the time complexity of binary search in a sorted array?","O(n)","O(log n)","O(n log n)","O(1)","B","Easy"
+"Which SQL command is used to remove all rows from a table without deleting the table itself?","DROP","DELETE TABLE","TRUNCATE","REMOVE","C","Medium"
+"Which HTTP method is commonly used to update an existing resource partially?","GET","POST","PATCH","OPTIONS","C","Medium"
+"In PostgreSQL, which clause is used to sort query results?","GROUP BY","ORDER BY","HAVING","LIMIT","B","Easy"
+"Which JavaScript keyword declares a block-scoped constant?","var","let","const","static","C","Easy"
+"Which normalization form removes partial dependency in relational databases?","1NF","2NF","3NF","BCNF","B","Hard"
+"What does JWT stand for?","Java Web Token","JSON Web Token","JavaScript Web Token","Joined Web Ticket","B","Easy"
+"Which Express middleware is commonly used to parse JSON request bodies?","cookie-parser","multer","express.json()","helmet","C","Easy"
+"Which index improves lookup speed at the cost of extra storage and write overhead?","Primary key only","Database index","Foreign key","Constraint trigger","B","Medium"
+"Which join returns only matching rows from both joined tables?","LEFT JOIN","RIGHT JOIN","INNER JOIN","FULL JOIN","C","Easy"
+"Which transaction property ensures completed transactions remain permanent?","Atomicity","Consistency","Isolation","Durability","D","Medium"
